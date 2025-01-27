@@ -1,2 +1,2 @@
-# rackmon
-Monitoramento de condições para racks de rede e servidores usando IoT
+# RackMon
+Monitoramento de condições ambientais para racks de rede e servidores usando IoT.
