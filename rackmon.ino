@@ -1,3 +1,5 @@
+#pragma region Bibliotecas
+
 #include "PMS.h"
 #include "WiFi.h"
 #include "WiFiClientSecure.h"
@@ -11,30 +13,42 @@
 #include "UniversalTelegramBot.h"
 #include "Defines.h"
 
+#pragma endregion
+
+#pragma region Variáveis e constantes
+
 // Constantes
 const int led = 2;
-const unsigned long tempomedioscan = 1000;
+const unsigned long tempoMedioScan = 1000;
 
 // Variáveis
-unsigned long ultimoscan;
-int statusled = 0;
+unsigned long ultimoScan, inicioTimer, agora;
+int statusLed = 0;
+
+#pragma endregion
+
+#pragma region Objetos
 
 // Objetos
-WiFiClientSecure clienteseguro;
-UniversalTelegramBot bot(tokenbot, clienteseguro);
+WiFiClientSecure clienteSeguro;
+UniversalTelegramBot bot(tokenBot, clienteSeguro);
+
+#pragma endregion
+
+#pragma region Métodos Arduino
 
 void setup(){
   Serial.begin(115200);
-  delay(500);
+  aguardar(1);
   
   Serial.print("Conectando à rede ");
-  Serial.print(redewifi);
-  WiFi.begin(redewifi, senhawifi);
-  clienteseguro.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+  Serial.print(redeWifi);
+  WiFi.begin(redeWifi, senhaWifi);
+  clienteSeguro.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   
   while (WiFi.status() != WL_CONNECTED){
     Serial.print(".");
-    delay(500);
+    aguardar(1);
   }
 
   Serial.print("\nWi-Fi conectado. Endereço IP: ");
@@ -42,7 +56,7 @@ void setup(){
 }
 
 void loop(){
-  if (millis() - ultimoscan > tempomedioscan){
+  if (millis() - ultimoScan > tempoMedioScan){
     int novasMsgs = bot.getUpdates(bot.last_message_received + 1);
 
     while (novasMsgs){
@@ -51,16 +65,20 @@ void loop(){
       novasMsgs = bot.getUpdates(bot.last_message_received + 1);
     }
 
-    ultimoscan = millis();
+    ultimoScan = millis();
   }
 }
+
+#pragma endregion
+
+#pragma region Métodos Telegram
 
 void tratarMensagens(int novasMsgs){
   Serial.print("Tratando novas mensagens: ");
   Serial.println(String(novasMsgs));
 
   for (int i = 0; i < novasMsgs; i++){
-    String idchat = bot.messages[i].chat_id;
+    String idChat = bot.messages[i].chat_id;
     String texto = bot.messages[i].text;
 
     String remetente = bot.messages[i].from_name;
@@ -68,29 +86,29 @@ void tratarMensagens(int novasMsgs){
       remetente = "Convidado";
 
     if (texto == "/liga"){
-      statusled = 1;
-      digitalWrite(led, statusled);
-      bot.sendMessage(idchat, "LED ligado", "");
+      statusLed = 1;
+      digitalWrite(led, statusLed);
+      bot.sendMessage(idChat, "LED ligado", "");
     }
 
     if (texto == "/desliga"){
-      statusled = 0;
-      digitalWrite(led, statusled);
-      bot.sendMessage(idchat, "LED desligado", "");
+      statusLed = 0;
+      digitalWrite(led, statusLed);
+      bot.sendMessage(idChat, "LED desligado", "");
     }
 
     if (texto == "/status"){
-      if (statusled){
-        bot.sendMessage(idchat, "LED ligado", "");
+      if (statusLed){
+        bot.sendMessage(idChat, "LED ligado", "");
       }
       else{
-        bot.sendMessage(idchat, "LED desligado", "");
+        bot.sendMessage(idChat, "LED desligado", "");
       }
     }
 
     if (texto == "/opcoes"){
       String keyboardJson = "[[\"/liga\", \"/desliga\"],[\"/status\"]]";
-      bot.sendMessageWithReplyKeyboard(idchat, "Escolha uma das opções", "", keyboardJson, true);
+      bot.sendMessageWithReplyKeyboard(idChat, "Escolha uma das opções", "", keyboardJson, true);
     }
 
     if (texto == "/start"){
@@ -100,7 +118,18 @@ void tratarMensagens(int novasMsgs){
       mensagem += "/desliga : Desliga o LED\n";
       mensagem += "/status : Retorna o status do LED\n";
       mensagem += "/opcoes : Retorna a lista de opções\n";
-      bot.sendMessage(idchat, mensagem, "Markdown");
+      bot.sendMessage(idChat, mensagem, "Markdown");
     }
   }
 }
+
+#pragma endregion
+
+#pragma region Métodos Auxiliares
+
+void aguardar(int segundos) {
+  inicioTimer, agora = millis();
+  while (millis() < inicioTimer, agora + (segundos * 1000));
+}
+
+#pragma endregion
